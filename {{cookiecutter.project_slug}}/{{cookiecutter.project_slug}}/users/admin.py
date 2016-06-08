@@ -8,31 +8,36 @@ from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 
 from .models import User
 
+from django.utils.translation import ugettext_lazy as _
 
-class MyUserChangeForm(UserChangeForm):
-    class Meta(UserChangeForm.Meta):
-        model = User
+from .models import User, UserProfile
 
-
-class MyUserCreationForm(UserCreationForm):
-
-    error_message = UserCreationForm.error_messages.update({
-        'duplicate_username': 'This username has already been taken.'
-    })
-
-    class Meta(UserCreationForm.Meta):
-        model = User
-
-    def clean_username(self):
-        username = self.cleaned_data['username']
-        try:
-            User.objects.get(username=username)
-        except User.DoesNotExist:
-            return username
-        raise forms.ValidationError(self.error_messages['duplicate_username'])
+class UserProfileInline(admin.StackedInline):
+    model = UserProfile
+    max_num = 1
+    can_delete = False
 
 
 @admin.register(User)
 class UserAdmin(AuthUserAdmin):
-    form = MyUserChangeForm
-    add_form = MyUserCreationForm
+    list_display = ('username', 'name', 'email', 'is_staff', 'is_superuser')
+    fieldsets = (
+        (None, {'fields': ('username', 'password')}),
+        (_('Personal info'), {'fields': ('name', 'email')}),
+        (_('Permissions'), {'fields': ('is_active', 'is_staff', 'is_superuser',
+                                       'groups', 'user_permissions')}),
+        (_('Important dates'), {'fields': ('last_login', 'date_joined')}),
+    )
+
+    def add_view(self, *args, **kwargs):
+        self.inlines = []
+        return super(UserAdmin, self).add_view(*args, **kwargs)
+
+    def change_view(self, *args, **kwargs):
+        self.inlines = [UserProfileInline]
+        return super(UserAdmin, self).change_view(*args, **kwargs)
+
+@admin.register(UserProfile)
+class UserProfileAdmin(admin.ModelAdmin):
+    list_display = ['name', 'birthday', 'language']
+    list_filter = ['language']

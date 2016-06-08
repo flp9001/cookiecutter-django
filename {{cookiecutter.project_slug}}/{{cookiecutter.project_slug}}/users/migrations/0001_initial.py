@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from django.db import models, migrations
+from django.conf import settings
 import django.utils.timezone
 import django.contrib.auth.models
 import django.core.validators
@@ -40,5 +41,18 @@ class Migration(migrations.Migration):
             managers=[
                 (b'objects', django.contrib.auth.models.UserManager()),
             ],
+        ),
+        migrations.CreateModel(
+            name='UserProfile',
+            fields=[
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('birthday', models.DateTimeField(blank=True, null=True, verbose_name='birthday')),
+                ('language', models.CharField(choices=[('en', 'English'), ('es', 'Español'), ('pt-br', 'Português Brasileiro')], default='en-us', max_length=10, verbose_name='language')),
+            ],
+        ),
+        migrations.AddField(
+            model_name='userprofile',
+            name='user',
+            field=models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='profile', to=settings.AUTH_USER_MODEL, verbose_name='user'),
         ),
     ]
